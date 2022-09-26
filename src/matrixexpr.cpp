@@ -1,42 +1,51 @@
 #include <matrixexpr.hpp>
 
 template<typename T>
-void MatrixExpression<T>::matrixA_init(size_t m,size_t n,std::vector<T> &vec)
+void MatrixExpression<T>::matrix_init(size_t m,size_t n,std::vector<T> &vec, const std::string literal)
 {
-    //this is like dynamic memory
-    // boost::numeric::ublas::unbounded_array<T> temp(m*n);
-    A= new boost::numeric::ublas::matrix<T>(m,n);
-    std::copy(vec.begin(), vec.end(), A->data().begin());
-    printMatrix();
+    boost::numeric::ublas::matrix<T> ** variable = 
+        (literal.compare("A")==0) ? &A : 
+        (literal.compare("B")==0) ? &B : 
+        (literal.compare("x")==0) ? &x : &Y;
+        
+    (*variable) = new boost::numeric::ublas::matrix<T>(m,n);
+    std::copy(vec.begin(), vec.end(), (*variable)->data().begin());
+    printMatrix(literal);
 }
 
 template<typename T>
-void MatrixExpression<T>::printMatrix()
+void MatrixExpression<T>::init_result_size(size_t m,size_t n)
 {
-    for(unsigned int i=0;i<A->size1();++i)
+    Y = new boost::numeric::ublas::matrix<T>(m,n);
+    for(unsigned int i=0;i<Y->size1();++i)
     {
-        std::cout<<"| ";
-        for (unsigned int j=0;j<A->size2();++j)
+        for (unsigned int j=0;j<Y->size2();++j)
         {
-            std::cout<<(*A)(i,j)<<" | ";
+            (*Y)(i,j)=0;
         }
-        std::cout<<std::endl;
     }
 }
 
-
 template<typename T>
-void MatrixExpression<T>::matrixB_init(size_t m,size_t n,std::vector<T> &vec)
+void MatrixExpression<T>::printMatrix(const std::string literal)
 {
-    // this->B.resize(m,n);
-
-} 
-
-template<typename T>
-void MatrixExpression<T>::matrixX_init(size_t m,size_t n,std::vector<T> &vec)
-{
-    // this->x.resize(m,n);
+    boost::numeric::ublas::matrix<T> * variable = 
+        (literal.compare("A")==0) ? A : 
+        (literal.compare("B")==0) ? B : 
+        (literal.compare("x")==0) ? x : Y;
+    std::cout<<std::endl;
+    for(unsigned int i=0;i<variable->size1();++i)
+    {
+        std::cout<<"| ";
+        for (unsigned int j=0;j<variable->size2();++j)
+        {
+            std::cout<<(*variable)(i,j)<<" | ";
+        }
+        std::cout<<std::endl;
+    }
+    std::cout<<std::endl;
 }
+
 
 template class MatrixExpression<long long>;
 template class MatrixExpression<short>;
