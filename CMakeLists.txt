@@ -1,12 +1,28 @@
 cmake_minimum_required(VERSION 3.0)
+set(CMAKE_CXX_STANDARD 14)
 project(transformations)
+cmake_policy(SET CMP0074 NEW)
 
-set(BOOST_INCLUDE_DIR "C:/boost/include/boost-1_79")
-set(BOOST_SRC_DIR "C:/boost/lib/")
+add_library(
+    alTran
+    STATIC
+    ${PROJECT_SOURCE_DIR}/src/altransform.cpp
+    ${PROJECT_SOURCE_DIR}/src/matrixexpr.cpp
+)
 
-message(STATUS  "Alleged boost lib path ${BOOST_SRC_DIR}")
-message(STATUS  "Alleged boost include path ${BOOST_INCLUDE_DIR}")
+find_package(Boost REQUIRED)
+set(Boost_USE_STATIC_LIBS ON)
+
+target_include_directories(
+    alTran
+    PUBLIC
+    ${PROJECT_SOURCE_DIR}/include
+    ${Boost_INCLUDE_DIRS}
+)
+
 
 add_executable(main ${PROJECT_SOURCE_DIR}/src/main.cc)
-target_include_directories(main PUBLIC ${BOOST_INCLUDE_DIR})
-# target_link_libraries(main PUBLIC ${BOOST_SRC_DIR})
+target_link_libraries(main PUBLIC alTran)
+
+
+# target_include_directories(main PUBLIC transform)
