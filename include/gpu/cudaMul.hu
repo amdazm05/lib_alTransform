@@ -1,0 +1,114 @@
+#ifndef _CUDAMUL
+#define _CUDAMUL
+#include <boost/numeric/ublas/matrix.hpp>
+#define ROW_TILE_WIDTH 32
+#define COL_TILE_WIDTH 32
+
+template<typename T>
+__global__ void multiplyMatrixGpu(
+        T *Ycuda, 
+        T *Acuda,
+        T *xcuda,
+        int m,
+        int n,
+        int width
+    )
+{
+    int r = blockIdx.y * blockDim.y + threadIdx.y;   
+    int c = blockIdx.x * blockDim.x + threadIdx.x;
+  
+    if( r < m && c < n)
+    {
+        T value = 0;
+        for(int k = 0; k < width; k++)
+        {
+            Ycuda[r * n + c] += Acuda[r * width + k] * B[k * n + c];
+        }
+    }
+}
+
+
+template<class T>
+class GPUMulMatrix : 
+public MatrixMul<T>
+{
+
+    T *Ycuda; 
+    T *Acuda;
+    T *xcuda;
+
+    void multiply
+    (
+        boost::numeric::ublas::matrix<T> *Y,
+        boost::numeric::ublas::matrix<T> *A,
+        boost::numeric::ublas::matrix<T> *x 
+    );
+};
+
+template<typename T>
+void multiplyMatrixGpuWrapper
+    (
+        T *Ycuda, 
+        T *Acuda,
+        T *xcuda,
+        int m,
+        int n,
+        int width
+    )
+{
+    dim3 dim_grid(width/COL_TILE_WIDTH, n/ROW_TILE_WIDTH, 1);
+    dim3 dim_block(COL_TILE_WIDTH, ROW_TILE_WIDTH, 1);
+    multiplyMatrixGpu<<<dim_grid, dim_block>>>(Ycuda, Acuda, xcuda, m,n width);
+}
+
+
+template<typename T>
+inline void GPUMulMatrix<T>::multiply
+    (
+        boost::numeric::ublas::matrix<T> *Y, 
+        boost::numeric::ublas::matrix<T> *A,
+        boost::numeric::ublas::matrix<T> *x 
+    )
+{   
+    cudaMallocManaged((void **)&Ycuda, (Y->size1()+Y->size2())*sizeof(T));
+    cudaMallocManaged((void **)&Acuda, (A->size1()+A->size2())*sizeof(T));
+    cudaMallocManaged((void **)&xcuda, (x->size1()+x->size2())*sizeof(T));
+
+    Ycuda = (T*)&Y->data()[0];
+    xcuda = (T*)&x->data()[0];
+    Acuda = (T*)&A->data()[0];
+
+    
+    multiplyMatrixGpuWrapper(Y, A, x, A->size2(), Y->size1(), Y->size2());
+    
+    cudaDeviceSynchronize();
+
+    
+
+    cudaFree(Ycuda);
+    cudaFree(xcuda);
+    cudaFree(Acuda);
+
+}
+
+// template void GPUMulMatrix<int>::multiply(boost::numeric::ublas::matrix<int> *Y, 
+//         boost::numeric::ublas::matrix<int> *A,
+//         boost::numeric::ublas::matrix<int> *x );
+// template void GPUMulMatrix<float>::multiply(boost::numeric::ublas::matrix<float> *Y, 
+//         boost::numeric::ublas::matrix<float> *A,
+//         boost::numeric::ublas::matrix<float> *x );
+// template void GPUMulMatrix<short>::multiply(boost::numeric::ublas::matrix<short> *Y, 
+//         boost::numeric::ublas::matrix<short> *A,
+//         boost::numeric::ublas::matrix<short> *x );
+// template void GPUMulMatrix<long long>::multiply(boost::numeric::ublas::matrix<long long> *Y, 
+//         boost::numeric::ublas::matrix<long long> *A,
+//         boost::numeric::ublas::matrix<long long> *x );
+
+
+template class GPUMulMatrix<long long>;
+template class GPUMulMatrix<short>;
+template class GPUMulMatrix<float>;
+template class GPUMulMatrix<int>;
+
+
+#endif //_CUDAMUL

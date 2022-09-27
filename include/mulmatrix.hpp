@@ -14,6 +14,10 @@ class MatrixMul
     )=0;
 };
 
+#if(__NVCC__)
+#include "gpu/cudaMul.hu"
+#endif
+
 template<class T>
 class StandardMul:
 public MatrixMul<T>
@@ -49,18 +53,6 @@ inline void StandardMul<T>::multiply
     
 
 }
-
-template class MatrixMul<long long>;
-template class MatrixMul<short>;
-template class MatrixMul<float>;
-template class MatrixMul<int>;
-
-
-
-// class StrassenMul:MatrixMul
-// {
-//     //To implement after reading
-// };
 
 
 #endif //_MATRIXMUL
