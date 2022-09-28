@@ -63,11 +63,18 @@ std::vector<T> * AlTransform<T>::evaluateExpression()
     
     // mxn  * nxk  == n*k 
     //Multilpication is possible 
+    _expr->y = (void *)&((_expr->Y->data())[0]);
+
+    _expr->a = (void *)&((_expr->A->data())[0]);
+
+    _expr->X = (void *)&((_expr->x->data())[0]);
+
+
     if(_expr->A->size2() == _expr->B->size1())
     {
-        std::cout<<"here its possible";
-        _mulops->multiply(_expr->Y,_expr->A,_expr->x);
+         _mulops->multiply((T*)(_expr->y),(T *)(_expr->a),(T*)(_expr->X));
     }
+
 
     _expr->printMatrix("Y");
 
@@ -77,5 +84,5 @@ std::vector<T> * AlTransform<T>::evaluateExpression()
 //Compile for these classes
 template class AlTransform<long long>;
 template class AlTransform<short>;
-template class AlTransform<float>;
+// template class AlTransform<float>;
 template class AlTransform<int>;

@@ -8,14 +8,14 @@ class MatrixMul
     public:
     virtual void multiply
     (
-        boost::numeric::ublas::matrix<T> *Y, 
-        boost::numeric::ublas::matrix<T> *A,
-        boost::numeric::ublas::matrix<T> *x 
+        T *Y, 
+        T *A,
+        T *x 
     )=0;
 };
 
 #if(__NVCC__)
-#include "gpu/cudaMul.hu"
+#include "gpu/cudaMul.cuh"
 #endif
 
 template<class T>
@@ -24,18 +24,18 @@ public MatrixMul<T>
 {
     void multiply
     (   
-        boost::numeric::ublas::matrix<T> *Y, 
-        boost::numeric::ublas::matrix<T> *A,
-        boost::numeric::ublas::matrix<T> *x  
+        T *Y, 
+        T *A,
+        T *x  
     );
 };
 
 template<typename T>
 inline void StandardMul<T>::multiply
     (   
-        boost::numeric::ublas::matrix<T> *Y, 
-        boost::numeric::ublas::matrix<T> *A,
-        boost::numeric::ublas::matrix<T> *x 
+        T *Y, 
+        T *A,
+        T *x 
     )
 {    
     int i,j,k;
@@ -45,14 +45,44 @@ inline void StandardMul<T>::multiply
         {
             for(k=0; k<Y->size2(); k++) 
             {
-                (*Y)(i,j) += (*A)(i,k) * (*x)(k,j);
-                std::cout<<"val Y "<<(*Y)(i,j)<<" "<<i<<j<<std::endl;
+                // (*Y)(i,j) += (*A)(i,k) * (*x)(k,j);
             }
         }
     }
     
 
 }
+
+template<class T>
+class GPUMulMatrix : 
+public MatrixMul<T>
+{
+
+    void *Ycuda; 
+    void *Acuda;
+    void *xcuda;
+    T dummy;
+
+    void multiply
+    (
+        T *Y,
+        T *A,
+        T *x 
+    );
+};
+
+
+template<typename T>
+inline void GPUMulMatrix<T>::multiply
+    (
+        T *Y, 
+        T *A,
+        T *x 
+    )
+{   
+    multiplyMatrixGpuWrapper(Ycuda, xcuda, Acuda,Y,A,x, 3, 3, 3,dummy );
+}
+
 
 
 #endif //_MATRIXMUL

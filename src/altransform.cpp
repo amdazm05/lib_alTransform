@@ -55,7 +55,6 @@ std::vector<T> * AlTransform<T>::evaluateExpression()
     //Multilpication is possible 
     if(_expr->A->size2() == _expr->B->size1())
     {
-        std::cout<<"here its possible";
         _mulops->multiply(_expr->Y,_expr->A,_expr->x);
     }
 

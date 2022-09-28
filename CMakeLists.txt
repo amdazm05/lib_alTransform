@@ -18,8 +18,10 @@ IF(GPU_ACCELERATION)
     set(CUDA_SEPARABLE_COMPILATION ON)
 
     CUDA_ADD_LIBRARY(alTran 
+
         ${PROJECT_SOURCE_DIR}/src/matrixexpr.cpp
         ${PROJECT_SOURCE_DIR}/src/altransform.cu
+        ${PROJECT_SOURCE_DIR}/include/gpu/cudaMul.cu
     )
     target_link_libraries(alTran ${CUDA_LIBRARIES})
 
