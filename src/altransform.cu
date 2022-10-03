@@ -1,4 +1,5 @@
-#include <altransform.hpp>
+#include "altransform.hpp"
+
 
 template <typename T>
 AlTransform<T> *AlTransform<T>::_inst=NULL;
@@ -13,7 +14,16 @@ template <typename T>
 void AlTransform<T>::init(void)
 {   
     _inst = new AlTransform<T>;
-    _inst->_mulops = new StandardMul<T>;
+    
+    #if(__NVCC__)
+        std::cout<<"Using CUDA for operations"<<std::endl;
+        _inst->_mulops = new GPUMulMatrix<T>;
+    #else
+        std::cout<<"Using CPU Standard Multiplications for operations"<<std::endl;
+        _inst->_mulops = new StandardMul<T>;
+    #endif
+    
+
     _inst->_expr= new MatrixExpression<T>;
 }
 
@@ -53,10 +63,18 @@ std::vector<T> * AlTransform<T>::evaluateExpression()
     
     // mxn  * nxk  == n*k 
     //Multilpication is possible 
+    _expr->y = (void *)&((_expr->Y->data())[0]);
+
+    _expr->a = (void *)&((_expr->A->data())[0]);
+
+    _expr->X = (void *)&((_expr->x->data())[0]);
+
+
     if(_expr->A->size2() == _expr->B->size1())
     {
-        _mulops->multiply(_expr->Y,_expr->A,_expr->x);
+         _mulops->multiply((T*)(_expr->y),(T *)(_expr->a),(T*)(_expr->X));
     }
+
 
     _expr->printMatrix("Y");
 
@@ -66,5 +84,5 @@ std::vector<T> * AlTransform<T>::evaluateExpression()
 //Compile for these classes
 template class AlTransform<long long>;
 template class AlTransform<short>;
-template class AlTransform<float>;
+// template class AlTransform<float>;
 template class AlTransform<int>;

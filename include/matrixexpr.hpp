@@ -11,6 +11,10 @@ class MatrixExpression
         boost::numeric::ublas::matrix<T> * B;
         boost::numeric::ublas::matrix<T> * x;
 
+        void *a=NULL;  //oh you'll know why I did this :)
+        void *b=NULL;
+        void *X=NULL;
+        void *y=NULL;
         //TODO Later
         boost::numeric::ublas::matrix<T> * Y;
 
