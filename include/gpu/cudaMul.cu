@@ -19,13 +19,11 @@ __global__  void multiplyGPU
         T * xcuda,
         int m,
         int n,
-        int width,
-        T spacing
+        int width
     )
 {
     int blkindex = blockIdx.x*blockDim.x;
     int blkindex_lookahead = blockIdx.x*blockDim.x+blockDim.x;
-    int Aindex = threadIdx.x+1;
     T value =0;
     int j=0;
   
@@ -33,7 +31,7 @@ __global__  void multiplyGPU
     for( ; i < blkindex_lookahead ; i++)
     {
         value = value + (Acuda[i])*xcuda[(j+threadIdx.x+(blockDim.x-1)*j)];
-        printf("iterator value = i = %d threadIdx = %d ,value = %d , block = %d , A %d, x %d \n",i,threadIdx.x,value, blockIdx.x,*(Acuda+i),(j+threadIdx.x+(blockDim.x-1)*j));
+        // printf("iterator value = i = %d threadIdx = %d ,value = %d , block = %d , A %d, x %d \n",i,threadIdx.x,value, blockIdx.x,*(Acuda+i),(j+threadIdx.x+(blockDim.x-1)*j));
         j++;
     }
 
@@ -68,17 +66,11 @@ void multiplyMatrixGpuWrapper(
 
         int m,
         int n,
-        int width,
-        T spacing
+        int width
         ) 
 {
-    // dim3 block_dim(1,1,1);
-    // dim3 grid_dim(1,1,1);
-
-    std::cout<<"In the wrapper functions \n";
     int size = m*n*sizeof(T);
-    std::cout<<*(A+1)<<std::endl;
-    std::cout<<size<<std::endl;
+
 
     gpuErrchk(cudaMalloc(&(Acuda),size));
     gpuErrchk(cudaMemcpy(Acuda,A ,size, cudaMemcpyHostToDevice));
@@ -91,7 +83,7 @@ void multiplyMatrixGpuWrapper(
 
     // std::cout<<Acuda<<std::endl;
 
-    multiplyGPU<<<3, 3>>>((T*)Ycuda, (T*)Acuda,(T*)xcuda, m,n ,width,spacing);
+    multiplyGPU<<<m, n>>>((T*)Ycuda, (T*)Acuda,(T*)xcuda, m,n ,width);
     gpuErrchk(cudaDeviceSynchronize());
 
     gpuErrchk(cudaMemcpy(Y,Ycuda ,size, cudaMemcpyDeviceToHost));
@@ -107,19 +99,19 @@ template void multiplyMatrixGpuWrapper<int>
 (
     void * Ycuda, void * Acuda, void * xcuda,
     int * Y, int * A, int * x,
-    int m,int n,int width,int type
+    int m,int n,int width
 );
 template void multiplyMatrixGpuWrapper<short>
 (
     void * Ycuda, void * Acuda, void * xcuda,
     short * Y, short * A, short * x,
-    int m,int n,int width,short type
+    int m,int n,int width
 );
 
 template void multiplyMatrixGpuWrapper<long long>
 (
     void * Ycuda, void * Acuda, void * xcuda,
     long long* Y, long long * A, long long* x,
-    int m,int n,int width,long long type
+    int m,int n,int width
 );
 

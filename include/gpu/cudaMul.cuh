@@ -8,8 +8,7 @@ __global__  void multiplyGPU
         void * xcuda,
         int m,
         int n,
-        int width,
-        T spacing
+        int width
      );
 
 template<typename T>
@@ -24,16 +23,16 @@ __global__  void init
      );
 
 template<typename T>
-void multiplyMatrixGpuWrapper(void * Ycuda, 
+void multiplyMatrixGpuWrapper(
+        void * Ycuda, 
         void * Acuda, 
         void * xcuda,
-
+    
         T * Y, 
         T * A, 
         T * x,
 
         int m,
         int n,
-        int width,
-        T spacing
+        int width
         );

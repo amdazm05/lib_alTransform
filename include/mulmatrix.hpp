@@ -61,7 +61,6 @@ public MatrixMul<T>
     void *Ycuda; 
     void *Acuda;
     void *xcuda;
-    T dummy;
 
     void multiply
     (
@@ -80,7 +79,7 @@ inline void GPUMulMatrix<T>::multiply
         T *x 
     )
 {   
-    multiplyMatrixGpuWrapper(Ycuda, xcuda, Acuda,Y,A,x, 3, 3, 3,dummy );
+    multiplyMatrixGpuWrapper(Ycuda, xcuda, Acuda,Y,A,x, 3, 3, 3 );
 }
 
 
