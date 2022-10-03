@@ -1,6 +1,16 @@
 #include "cudaMul.cuh"
 #include <iostream>
 
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      fprintf(stderr,"GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+      if (abort) exit(code);
+   }
+}
+
 template<typename T>
 __global__  void multiplyGPU
     (
@@ -11,56 +21,45 @@ __global__  void multiplyGPU
         int n,
         int width,
         T spacing
-     )
+    )
 {
-  int r = blockIdx.y * blockDim.y + threadIdx.y;   
-  int c = blockIdx.x * blockDim.x + threadIdx.x;
-  // check boundry conditions
-  if( r < m && c < n){
-    // do the multiplication for one row and col
-    T value = 0;
-    for(int k = 0; k < 9; k++){
-      value += (*(Acuda+r * width + k)) * (*(xcuda+(k * n) + c));
+    int blkindex = blockIdx.x*blockDim.x;
+    int blkindex_lookahead = blockIdx.x*blockDim.x+blockDim.x;
+    int Aindex = threadIdx.x+1;
+    T value =0;
+    int j=0;
+  
+    int i = blkindex;
+    for( ; i < blkindex_lookahead ; i++)
+    {
+        value = value + (Acuda[i])*xcuda[(j+threadIdx.x+(blockDim.x-1)*j)];
+        printf("iterator value = i = %d threadIdx = %d ,value = %d , block = %d , A %d, x %d \n",i,threadIdx.x,value, blockIdx.x,*(Acuda+i),(j+threadIdx.x+(blockDim.x-1)*j));
+        j++;
     }
-    // store the result
-    *(Ycuda+c * n + c) = value;
-    printf("%d ", *(Ycuda+r * n + c));
-  }
+
+    Ycuda[threadIdx.x+blkindex] = value;
 }
 
 
 template<typename T>
 __global__  void init
     (
-        void * Ycuda, 
-        void * Acuda, 
-        void * xcuda,
-
-        T * Y, 
-        T * A, 
-        T * x,
+        T * Ycuda, 
+        T * Acuda, 
+        T * xcuda,
 
         int m,
         int n
      )
 {
-    int r = blockIdx.y * blockDim.y + threadIdx.y;   
-    // int c = blockIdx.x * blockDim.x + threadIdx.x;
 
-    for(int k = 0; k < n; k++)
-        {
-            // *((T*)Acuda+ (r* n+c)) = *(A+ (r* n+c));
-            // *((T*)xcuda+ (r* n+c)) = *(x+ (r* n+c));
-
-            printf("%d",((T*)Acuda)[r * n + k]);
-        }
 }
 
 
 template<typename T>
 void multiplyMatrixGpuWrapper(
         void * Ycuda, 
-        void * Acuda, 
+        void * Acuda,
         void * xcuda,
 
         T * Y, 
@@ -81,21 +80,21 @@ void multiplyMatrixGpuWrapper(
     std::cout<<*(A+1)<<std::endl;
     std::cout<<size<<std::endl;
 
-    cudaMalloc(&(Acuda),size);
-    cudaMemcpy(Acuda,A ,size, cudaMemcpyHostToDevice);
+    gpuErrchk(cudaMalloc(&(Acuda),size));
+    gpuErrchk(cudaMemcpy(Acuda,A ,size, cudaMemcpyHostToDevice));
 
-    cudaMalloc(&(xcuda),size); 
-    cudaMemcpy(xcuda,x , size,cudaMemcpyHostToDevice);
+    gpuErrchk(cudaMalloc(&(xcuda),size)); 
+    gpuErrchk(cudaMemcpy(xcuda,x , size,cudaMemcpyHostToDevice));
 
-    cudaMalloc(&(Ycuda),size);
-    cudaMemcpy(Ycuda,Y ,size, cudaMemcpyHostToDevice);
+    gpuErrchk(cudaMalloc(&(Ycuda),size));
+    gpuErrchk(cudaMemcpy(Ycuda,Y , size,cudaMemcpyHostToDevice));
 
     // std::cout<<Acuda<<std::endl;
 
     multiplyGPU<<<3, 3>>>((T*)Ycuda, (T*)Acuda,(T*)xcuda, m,n ,width,spacing);
-    cudaDeviceSynchronize();
+    gpuErrchk(cudaDeviceSynchronize());
 
-    cudaMemcpy(Y,Ycuda ,size, cudaMemcpyHostToDevice);
+    gpuErrchk(cudaMemcpy(Y,Ycuda ,size, cudaMemcpyDeviceToHost));
 
     cudaFree(Ycuda);
     cudaFree(xcuda);

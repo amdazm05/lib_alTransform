@@ -19,10 +19,6 @@ __global__  void init
         T * Acuda, 
         T * xcuda,
 
-        T * Y, 
-        T * A, 
-        T * x,
-
         int m,
         int n
      );
