@@ -58,13 +58,12 @@ std::vector<T> * AlTransform<T>::evaluateExpression()
         _mulops->multiply(_expr->Y,_expr->A,_expr->x);
     }
 
-    _expr->printMatrix("Y");
+    // _expr->printMatrix("Y");
 
     return (std::vector<T> *)_expr->Y; //the very fact that this is legal is exciting 
 }
 
 //Compile for these classes
 template class AlTransform<long long>;
-template class AlTransform<short>;
-template class AlTransform<float>;
 template class AlTransform<int>;
+template class AlTransform<short>;
