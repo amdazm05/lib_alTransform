@@ -38,6 +38,7 @@ template <typename T>
 void AlTransform<T>::setVariable(short m,short n,std::vector<T> &vec ,const std::string literal)
 {
     _expr->matrix_init(m,n,vec,literal);
+    
 }
 
 template <typename T>
@@ -64,19 +65,17 @@ std::vector<T> * AlTransform<T>::evaluateExpression()
     // mxn  * nxk  == n*k 
     //Multilpication is possible 
     _expr->y = (void *)&((_expr->Y->data())[0]);
-
     _expr->a = (void *)&((_expr->A->data())[0]);
-
     _expr->X = (void *)&((_expr->x->data())[0]);
 
 
     if(_expr->A->size2() == _expr->B->size1())
     {
-         _mulops->multiply((T*)(_expr->y),(T *)(_expr->a),(T*)(_expr->X));
+         _mulops->multiply((T*)(_expr->y),(T *)(_expr->a),(T*)(_expr->X),_expr->x->size1(),_expr->x->size2());
     }
 
 
-    _expr->printMatrix("Y");
+    // _expr->printMatrix("Y");
 
     return (std::vector<T> *)_expr->Y; //the very fact that this is legal is exciting 
 }

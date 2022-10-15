@@ -10,7 +10,7 @@ void MatrixExpression<T>::matrix_init(size_t m,size_t n,std::vector<T> &vec, con
         
     (*variable) = new boost::numeric::ublas::matrix<T>(m,n);
     std::copy(vec.begin(), vec.end(), (*variable)->data().begin());
-    printMatrix(literal);
+    // printMatrix(literal);
 }
 
 template<typename T>
