@@ -83,5 +83,4 @@ std::vector<T> * AlTransform<T>::evaluateExpression()
 //Compile for these classes
 template class AlTransform<long long>;
 template class AlTransform<short>;
-// template class AlTransform<float>;
 template class AlTransform<int>;

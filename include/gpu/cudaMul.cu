@@ -24,7 +24,6 @@ __global__  void multiplyGPU
     int blkindex = blockIdx.x*blockDim.x;
     int blkindex_lookahead = blockIdx.x*blockDim.x+blockDim.x;
     int j=0;
-  
     int i = blkindex;
     for( ; i < blkindex_lookahead ; i++)
     {
@@ -37,17 +36,19 @@ __global__  void multiplyGPU
 
 
 template<typename T>
-__global__  void init
+__global__  void GPUMemcpy
     (
-        T * Ycuda, 
         T * Acuda, 
         T * xcuda,
 
+        T * Y,
+        T * A, 
+        T * x,
         int m,
         int n
-     )
+    )
 {
-
+    //TODO @Explore more options 
 }
 
 
@@ -69,21 +70,25 @@ void multiplyMatrixGpuWrapper
     int size = m*n*sizeof(T);
 
 
-    gpuErrchk(cudaMalloc(&(Acuda),size));
-    gpuErrchk(cudaMemcpy(Acuda,A ,size, cudaMemcpyHostToDevice));
+    cudaMallocManaged(&Acuda, size);
+    cudaMallocManaged(&xcuda, size);
+    cudaMallocManaged(&Ycuda, size);
 
-    gpuErrchk(cudaMalloc(&(xcuda),size)); 
-    gpuErrchk(cudaMemcpy(xcuda,x , size,cudaMemcpyHostToDevice));
+    for(int i=0; i< m*n;i++)
+    {
+        *((T*)xcuda+i)=*(x+i);
+        *((T*)Acuda+i)=*(A+i);
+    }
 
-    gpuErrchk(cudaMalloc(&(Ycuda),size));
-    gpuErrchk(cudaMemcpy(Ycuda,Y , size,cudaMemcpyHostToDevice));
-
-    // std::cout<<Acuda<<std::endl;
-
+    // GPUMemcpy<<<m,n>>>((T*)Acuda,(T*)xcuda,Y,A,x, m,n);
+    // cudaDeviceSynchronize();
     multiplyGPU<<<m, n>>>((T*)Ycuda, (T*)Acuda,(T*)xcuda, m,n);
-    gpuErrchk(cudaDeviceSynchronize());
+    cudaDeviceSynchronize();
 
-    gpuErrchk(cudaMemcpy(Y,Ycuda ,size, cudaMemcpyDeviceToHost));
+    for(int i=0; i< m*n;i++)
+    {
+        *(Y+i)=*((T*)Ycuda+i);
+    }
 
     cudaFree(Ycuda);
     cudaFree(xcuda);

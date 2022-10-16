@@ -11,15 +11,17 @@ __global__  void multiplyGPU
      );
 
 template<typename T>
-__global__  void init
+__global__  void GPUMemcpy
     (
-        T * Ycuda, 
         T * Acuda, 
         T * xcuda,
 
+        T * Y,
+        T * A, 
+        T * x,
         int m,
         int n
-     );
+    );
 
 template<typename T>
 void multiplyMatrixGpuWrapper(

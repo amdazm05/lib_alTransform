@@ -1,7 +1,7 @@
 #include <altransform.hpp>
 #include <benchmark/benchmark.h>
 
-static void GPU_MATRIX_BENCHMARK(benchmark::State& state) 
+static void CPU_MATRIX_BENCHMARK(benchmark::State& state) 
 {
     AlTransform<int>::init();
     AlTransform<int> *handle = AlTransform<int>::get_instance();
@@ -28,6 +28,6 @@ static void GPU_MATRIX_BENCHMARK(benchmark::State& state)
     handle->evaluateExpression();
   }
 }
-BENCHMARK(GPU_MATRIX_BENCHMARK)->Iterations(2000);
+BENCHMARK(CPU_MATRIX_BENCHMARK)->Iterations(2000);
 
 BENCHMARK_MAIN();
